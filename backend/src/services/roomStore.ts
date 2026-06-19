@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { Participant, Room, RoomSnapshot } from "../models/game.js";
+import type { Guess, Participant, Room, RoomSnapshot } from "../models/game.js";
 import { HttpError } from "../api/schemas.js";
 import { STARTER_ROLES, STARTER_WORDS } from "../seed/starterData.js";
 
@@ -53,6 +53,8 @@ export function createRoom(playerName: string) {
     status: "lobby",
     hostId: participant.id,
     participants: [participant],
+    guesses: [],
+    scores: {},
     createdAt: now(),
     updatedAt: now()
   };
@@ -115,6 +117,64 @@ export function startRoom(code: string, participantId: string): RoomSnapshot {
 
   room.status = "active";
   room.updatedAt = now();
+  for (const participant of room.participants) {
+    room.scores[participant.id] = 0;
+  }
+  rooms.set(room.code, room);
+
+  return toRoomSnapshot(cloneRoom(room), participantId);
+}
+
+export function compareGuess(input: string, secretWord: string): boolean {
+  const trimmed = input.trim();
+  if (trimmed === "") return false;
+  return trimmed.toLowerCase() === secretWord.toLowerCase();
+}
+
+export function submitGuess(code: string, participantId: string, rawGuess: string): RoomSnapshot {
+  const room = rooms.get(code);
+
+  if (!room) {
+    throw new HttpError(404, "Room not found");
+  }
+
+  if (room.status !== "active") {
+    throw new HttpError(400, "Room is not active");
+  }
+
+  if (participantId === room.hostId) {
+    throw new HttpError(403, "Drawer cannot submit a guess");
+  }
+
+  const participant = room.participants.find((p) => p.id === participantId);
+
+  if (!participant) {
+    throw new HttpError(404, "Participant not found");
+  }
+
+  const trimmed = rawGuess.trim();
+
+  if (trimmed === "") {
+    throw new HttpError(400, "Guess cannot be empty");
+  }
+
+  const secretWord = STARTER_WORDS[0];
+  const correct = compareGuess(rawGuess, secretWord);
+  const guess: Guess = {
+    participantId,
+    playerName: participant.name,
+    text: trimmed.toLowerCase(),
+    correct,
+    submittedAt: now()
+  };
+
+  room.guesses.push(guess);
+
+  if (correct) {
+    room.scores[participantId] = (room.scores[participantId] ?? 0) + 100;
+  }
+
+  room.updatedAt = now();
   rooms.set(room.code, room);
 
   return toRoomSnapshot(cloneRoom(room), participantId);
@@ -133,6 +193,8 @@ export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSn
     participants: room.participants.map((participant) => ({ ...participant })),
     availableWords: listWords(),
     roles: [...STARTER_ROLES],
+    guesses: room.guesses.map((g) => ({ ...g })),
+    scores: { ...room.scores },
     ...(secretWord !== undefined ? { secretWord } : {})
   };
 }
