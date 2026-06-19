@@ -63,22 +63,35 @@ Every player on the game screen can clearly see their own assigned role for the 
 ### Edge Cases
 
 - What happens if the game screen loads but the room data is unavailable or the session is lost? The player is redirected to the home screen with a neutral message.
+- While waiting for the first poll response on the game screen, the UI renders a blank/empty state. No loading indicator is shown.
 - What happens if a player navigates directly to the game URL without going through the lobby? They are redirected to the home screen (no valid room session).
 - What if the starter seed list is empty or unavailable? This is a backend configuration error; the game should not start if no words are available. (Out of scope for this scenario — the seed list is static and always present.)
 - What if two words have equal selection priority under the deterministic algorithm? The algorithm must define a fixed tie-breaking rule so the outcome is always the same.
+
+## Clarifications
+
+### Session 2026-06-19
+
+- Q: How should FR-006 (secret word hidden from guessers) be enforced — backend API filtering or UI-only? → A: Backend API omits the word from responses for guesser-role clients (server-side enforcement).
+- Q: Who can trigger the "Start Game" action — host only or any player? → A: Host only (room creator).
+- Q: Minimum number of players required before the host can start the game? → A: 2 players minimum.
+- Q: How does the frontend identify which room a player belongs to on the `/game` route? → A: `roomCode` passed as a URL query parameter (e.g., `/game?room=ABC123`).
+- Q: What should players see on the game screen while waiting for room data to load? → A: Blank/empty game screen until the first poll response arrives (no loading indicator).
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
 - **FR-001**: When the game starts, all players MUST be transitioned to the game view simultaneously (within the polling window).
+- **FR-001a**: Only the host (room creator) MAY trigger the "Start Game" action. Non-host players MUST NOT see or be able to activate the Start Game control.
+- **FR-001b**: The Start Game action MUST be disabled (or not rendered) when fewer than 2 players are present in the lobby. The game MUST NOT start with a single participant.
 - **FR-002**: The first participant in the room (the room creator / host) MUST be assigned the drawer role for the first round.
 - **FR-003**: All participants who are not the drawer MUST be assigned the guesser role for the first round.
 - **FR-004**: The secret word MUST be selected deterministically from the starter seed list (rocket, pizza, castle, guitar, sunflower). The selection algorithm MUST produce the same word every time for the first round under identical conditions.
 - **FR-005**: The secret word MUST be displayed to the drawer on the game screen.
-- **FR-006**: The secret word MUST NOT be visible anywhere on the game screen for guesser-role players.
+- **FR-006**: The secret word MUST NOT be visible anywhere on the game screen for guesser-role players. Enforcement is server-side: the backend API MUST omit the secret word from any response sent to a client whose `participantId` does not match the drawer assignment. UI-only hiding is insufficient.
 - **FR-007**: Each player's role (drawer or guesser) MUST be clearly and unambiguously labeled on their game screen.
-- **FR-008**: A player who navigates to the game screen without an active room session MUST be redirected to the home screen.
+- **FR-008**: A player who navigates to the game screen without a valid `roomCode` query parameter or without a `participantId` in `sessionStorage` MUST be redirected to the home screen.
 
 ### Key Entities
 
@@ -100,6 +113,6 @@ Every player on the game screen can clearly see their own assigned role for the 
 - Word selection for the first round uses the first word from the starter seed list (index 0: "rocket") as the deterministic choice. This guarantees identical behavior on every run without requiring a counter or persistent state.
 - The transition from lobby to game is driven by the same polling mechanism established in Scenario 1 (status changes to "active" and clients navigate on the next poll).
 - Player name validation (non-empty, 1–20 chars, whitespace-only rejected) is already enforced at the lobby entry point (Scenario 1). This scenario does not re-implement name validation — it inherits the constraint.
-- The game screen is a single shared route (`/game`). Role-specific content (secret word visibility, role label) is rendered conditionally based on the player's stored participant ID matched against the room's drawer assignment.
+- The game screen is a single shared route (`/game`). The `roomCode` is passed as a URL query parameter (e.g., `/game?room=ABC123`); the `participantId` is read from `sessionStorage`. Role-specific content (secret word visibility, role label) is rendered conditionally based on the `participantId` matched against the room's drawer assignment.
 - Only the first round is in scope for this scenario. Drawer rotation, subsequent rounds, and timers are explicitly out of scope.
 - The starter seed list is static and always present; no error handling for a missing or empty word list is required in this scenario.
