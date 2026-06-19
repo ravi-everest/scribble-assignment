@@ -62,7 +62,7 @@ Every player on the game screen can clearly see their own assigned role for the 
 
 ### Edge Cases
 
-- What happens if the game screen loads but the room data is unavailable or the session is lost? The player is redirected to the home screen with a neutral message.
+- What happens if the game screen loads but the room data is unavailable or the session is lost? A visible error message is displayed ("Room not found or session expired. Redirecting…") and the player is automatically redirected to the home screen after 2 seconds.
 - While waiting for the first poll response on the game screen, the UI renders a blank/empty state. No loading indicator is shown.
 - What happens if a player navigates directly to the game URL without going through the lobby? They are redirected to the home screen (no valid room session).
 - What if the starter seed list is empty or unavailable? This is a backend configuration error; the game should not start if no words are available. (Out of scope for this scenario — the seed list is static and always present.)

@@ -35,9 +35,9 @@ export function LobbyPage() {
 
   useEffect(() => {
     if (room?.status === "active") {
-      navigate("/game");
+      navigate(`/game?room=${room.code}`);
     }
-  }, [navigate, room?.status]);
+  }, [navigate, room?.status, room?.code]);
 
   if (!room) {
     return null;

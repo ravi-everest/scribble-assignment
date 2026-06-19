@@ -1,27 +1,55 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card } from "../components/Card";
 import { GuessForm } from "../components/GuessForm";
 import { ResultPanel } from "../components/ResultPanel";
 import { RoomCodeBadge } from "../components/RoomCodeBadge";
 import { Scoreboard } from "../components/Scoreboard";
-import { useRoomState } from "../state/roomStore";
+import { useRoomState, useRoomStore } from "../state/roomStore";
 
 export function GamePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const roomStore = useRoomStore();
   const { room, participantId } = useRoomState();
 
-  useEffect(() => {
-    if (!room) {
-      navigate("/", { replace: true });
-    }
-  }, [navigate, room]);
+  const roomCode = searchParams.get("room");
+  const storedParticipantId = sessionStorage.getItem("participantId");
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  if (!room) {
+  useEffect(() => {
+    if (!roomCode || !storedParticipantId) {
+      navigate("/", { replace: true });
+      return;
+    }
+
+    if (!room) {
+      roomStore.restoreSession(roomCode, storedParticipantId).catch(() => {
+        setLoadError("Room not found or session expired. Redirecting…");
+      });
+    }
+  }, [navigate, room, roomCode, roomStore, storedParticipantId]);
+
+  useEffect(() => {
+    if (!loadError) return;
+    const id = setTimeout(() => navigate("/", { replace: true }), 2000);
+    return () => clearTimeout(id);
+  }, [loadError, navigate]);
+
+  if (loadError) {
+    return (
+      <section className="panel placeholder-page">
+        <p className="form__error">{loadError}</p>
+      </section>
+    );
+  }
+
+  if (!room || !participantId) {
     return null;
   }
 
-  const viewer = room.participants.find((participant) => participant.id === participantId) ?? null;
+  const viewer = room.participants.find((p) => p.id === participantId) ?? null;
+  const isDrawer = participantId === room.hostId;
 
   return (
     <section className="panel game-page">
@@ -55,9 +83,15 @@ export function GamePage() {
                 <dd>{viewer?.name ?? "Unknown player"}</dd>
               </div>
               <div>
-                <dt>Status</dt>
-                <dd>Playing</dd>
+                <dt>Role</dt>
+                <dd>{isDrawer ? "You are the drawer" : "You are guessing"}</dd>
               </div>
+              {isDrawer && room.secretWord && (
+                <div>
+                  <dt>Secret word</dt>
+                  <dd>{room.secretWord}</dd>
+                </div>
+              )}
             </dl>
           </Card>
 
