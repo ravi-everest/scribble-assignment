@@ -44,7 +44,7 @@
 **Independent Test**: With two browser tabs in the lobby, host clicks Start Game — both tabs transition to `/game?room=<CODE>`. Refreshing either tab keeps the player on the game screen (no redirect to `/`).
 
 - [ ] T004 [US1] Write `participantId` to `sessionStorage` (key: `participantId`) inside `setRoomSession` in `frontend/src/state/roomStore.ts`
-- [ ] T005 [US1] Add `restoreSession(roomCode: string, participantId: string)` method to `RoomStore` in `frontend/src/state/roomStore.ts` — fetch room via `api.fetchRoom(roomCode, participantId)` and seed the store (depends on T004)
+- [ ] T005 [US1] Add `restoreSession(roomCode: string, participantId: string)` method to `RoomStore` in `frontend/src/state/roomStore.ts` — fetch room via `api.fetchRoom(roomCode, participantId)`, seed the store with both the room snapshot AND the `participantId` (so `useRoomState().participantId` is non-null after refresh — required by T010's role check) (depends on T004)
 - [ ] T006 [P] [US1] Update `LobbyPage` navigate call from `navigate("/game")` to `navigate(\`/game?room=${room.code}\`)` in `frontend/src/pages/LobbyPage.tsx`
 - [ ] T007 [US1] Rewrite `GamePage` session bootstrap in `frontend/src/pages/GamePage.tsx`: read `roomCode` from `useSearchParams()`, read `participantId` from `sessionStorage.getItem("participantId")`, redirect to `/` if either is absent, call `store.restoreSession(roomCode, participantId)` in a `useEffect` when the store has no room (depends on T005, T006)
 
@@ -58,7 +58,7 @@
 
 **Independent Test**: Two browser tabs on game screen. Tab A (drawer) shows "rocket". Tab B (guesser) has no text "rocket" anywhere in the DOM. Confirmed via network inspect: guesser poll response has no `secretWord` field.
 
-- [ ] T008 [US2] Update `toRoomSnapshot` in `backend/src/services/roomStore.ts`: when `status === "active"` and `viewerParticipantId === room.hostId`, set `secretWord: STARTER_WORDS[0]`; in all other cases omit `secretWord` (leave `undefined`) (depends on T002)
+- [ ] T008 [US2] Update `toRoomSnapshot` in `backend/src/services/roomStore.ts`: when `status === "active"` and `viewerParticipantId === room.hostId`, set `secretWord: STARTER_WORDS[0]`; in all other cases omit `secretWord` (leave `undefined`). Also fix the `startRoom` call-site at line 120: change `toRoomSnapshot(cloneRoom(room))` to `toRoomSnapshot(cloneRoom(room), participantId)` so the POST `/start` response includes `secretWord` for the drawer immediately (not only on the next poll). (depends on T002)
 - [ ] T009 [US2] Add secret word display to `GamePage` in `frontend/src/pages/GamePage.tsx`: when `room.secretWord` is defined, render it prominently with a label (e.g. "Secret word:"); when absent, render nothing in that position (depends on T003, T007, T008)
 
 **Checkpoint**: US2 fully functional — drawer sees "rocket", guesser sees nothing; server response confirms enforcement.
@@ -167,5 +167,5 @@ T007  Rewrite GamePage session bootstrap in frontend/src/pages/GamePage.tsx
 - [Story] labels map each task to its acceptance criteria in `spec.md`
 - `STARTER_WORDS[0]` = `"rocket"` — hardcoded constant; do not compute dynamically
 - `participantId` sessionStorage key must be exactly `"participantId"` (matched in `GamePage` read)
-- `toRoomSnapshot` caller in `POST /rooms/:code/start` already passes `result.participantId` — no call-site changes needed for T008
+- `toRoomSnapshot` in `startRoom()` (roomStore.ts:120) currently passes **no** `viewerParticipantId` — T008 must fix this call-site to pass `participantId` so the drawer receives `secretWord` immediately in the POST `/start` response
 - Commit after each task; message must reference the task ID (e.g. `T007`) per Constitution Principle VI

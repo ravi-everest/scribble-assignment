@@ -6,7 +6,7 @@
 
 ## Content Quality
 
-- [ ] No implementation details (languages, frameworks, APIs)
+- [x] No implementation details (languages, frameworks, APIs)
 - [x] Focused on user value and business needs
 - [x] Written for non-technical stakeholders
 - [x] All mandatory sections completed
@@ -27,12 +27,13 @@
 - [x] All functional requirements have clear acceptance criteria
 - [x] User scenarios cover primary flows
 - [x] Feature meets measurable outcomes defined in Success Criteria
-- [ ] No implementation details leak into specification
+- [x] No implementation details leak into specification
 
 ## Notes
 
 - 13/13 passed on initial validation (2026-06-19 pre-clarify).
-- After clarification session (2026-06-19): 11/13 passing. Two regressions introduced by implementation-detail language in clarified FRs (sessionStorage, URL query parameters, backend API filtering). Consider abstracting these into the Assumptions section rather than the FR bullets to restore these checks.
+- After clarification session (2026-06-19): regressed to 11/13 — implementation-detail language (sessionStorage, URL query parameters, backend API filtering) was in FR-006 and FR-008.
+- Restored to 13/13 (2026-06-19): implementation details moved from FR bullets to Assumptions section; FRs now describe behavior only.
 - Word selection determinism resolved in Assumptions: first word from seed list (index 0 = "rocket") is the canonical first-round choice.
 - Drawer rotation, subsequent rounds, and timers are explicitly out of scope.
 - Player name validation inherited from Scenario 1 — not re-specified here.

@@ -89,9 +89,9 @@ Every player on the game screen can clearly see their own assigned role for the 
 - **FR-003**: All participants who are not the drawer MUST be assigned the guesser role for the first round.
 - **FR-004**: The secret word MUST be selected deterministically from the starter seed list (rocket, pizza, castle, guitar, sunflower). The selection algorithm MUST produce the same word every time for the first round under identical conditions.
 - **FR-005**: The secret word MUST be displayed to the drawer on the game screen.
-- **FR-006**: The secret word MUST NOT be visible anywhere on the game screen for guesser-role players. Enforcement is server-side: the backend API MUST omit the secret word from any response sent to a client whose `participantId` does not match the drawer assignment. UI-only hiding is insufficient.
+- **FR-006**: The secret word MUST NOT be visible anywhere on the game screen for guesser-role players. The enforcement mechanism MUST be server-side — not UI-only.
 - **FR-007**: Each player's role (drawer or guesser) MUST be clearly and unambiguously labeled on their game screen.
-- **FR-008**: A player who navigates to the game screen without a valid `roomCode` query parameter or without a `participantId` in `sessionStorage` MUST be redirected to the home screen.
+- **FR-008**: A player who navigates to the game screen without a resolvable active room session MUST be redirected to the home screen.
 
 ### Key Entities
 
@@ -113,6 +113,8 @@ Every player on the game screen can clearly see their own assigned role for the 
 - Word selection for the first round uses the first word from the starter seed list (index 0: "rocket") as the deterministic choice. This guarantees identical behavior on every run without requiring a counter or persistent state.
 - The transition from lobby to game is driven by the same polling mechanism established in Scenario 1 (status changes to "active" and clients navigate on the next poll).
 - Player name validation (non-empty, 1–20 chars, whitespace-only rejected) is already enforced at the lobby entry point (Scenario 1). This scenario does not re-implement name validation — it inherits the constraint.
-- The game screen is a single shared route (`/game`). The `roomCode` is passed as a URL query parameter (e.g., `/game?room=ABC123`); the `participantId` is read from `sessionStorage`. Role-specific content (secret word visibility, role label) is rendered conditionally based on the `participantId` matched against the room's drawer assignment.
+- The game screen is a single shared route (`/game`). Role-specific content (secret word visibility, role label) is rendered conditionally based on the player's identity matched against the room's drawer assignment.
+- Implementation detail (FR-008): room identity is conveyed via a URL query parameter (`/game?room=CODE`); player identity is persisted in browser session storage. If either is absent on navigation, the player has no resolvable session and is redirected to the home screen.
+- Implementation detail (FR-006): the server omits the secret word from API responses sent to any client whose identity does not match the drawer assignment. The client never receives the word and therefore cannot display it.
 - Only the first round is in scope for this scenario. Drawer rotation, subsequent rounds, and timers are explicitly out of scope.
 - The starter seed list is static and always present; no error handling for a missing or empty word list is required in this scenario.
