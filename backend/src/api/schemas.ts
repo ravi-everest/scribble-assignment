@@ -22,7 +22,7 @@ export const startRoomSchema = z.object({
 
 export const submitGuessSchema = z.object({
   participantId: z.string().min(1),
-  guess: z.string().min(1).max(50)
+  guess: z.string().trim().min(1, "Guess cannot be empty").max(50)
 });
 
 export class HttpError extends Error {

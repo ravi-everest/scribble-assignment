@@ -13,7 +13,7 @@ export function ResultPanel({ guesses }: ResultPanelProps) {
       ) : (
         <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
           {guesses.map((g, i) => (
-            <li key={i} style={{ display: "flex", gap: "0.5rem", padding: "0.2rem 0", fontSize: "0.875rem", borderBottom: "1px solid #f3f4f6" }}>
+            <li key={g.participantId + g.submittedAt} style={{ display: "flex", gap: "0.5rem", padding: "0.2rem 0", fontSize: "0.875rem", borderBottom: "1px solid #f3f4f6" }}>
               <span style={{ color: g.correct ? "#16a34a" : "#dc2626" }}>{g.correct ? "✓" : "✗"}</span>
               <span><strong>{g.playerName}</strong>: {g.text}</span>
             </li>

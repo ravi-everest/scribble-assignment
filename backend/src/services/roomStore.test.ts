@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { compareGuess, createRoom, joinRoom, startRoom, submitGuess } from "./roomStore.js";
 
 describe("roomStore", () => {
-  it("createRoom returns a room with a 4-character uppercase code", () => {
+  it("createRoom returns a room with a 6-character uppercase code", () => {
     const result = createRoom("Alice");
 
     expect(result.room.code).toMatch(/^[A-Z0-9]{6}$/);

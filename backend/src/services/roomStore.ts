@@ -125,6 +125,8 @@ export function startRoom(code: string, participantId: string): RoomSnapshot {
   return toRoomSnapshot(cloneRoom(room), participantId);
 }
 
+const CORRECT_GUESS_POINTS = 100;
+
 export function compareGuess(input: string, secretWord: string): boolean {
   const trimmed = input.trim();
   if (trimmed === "") return false;
@@ -171,7 +173,7 @@ export function submitGuess(code: string, participantId: string, rawGuess: strin
   room.guesses.push(guess);
 
   if (correct) {
-    room.scores[participantId] = (room.scores[participantId] ?? 0) + 100;
+    room.scores[participantId] = (room.scores[participantId] ?? 0) + CORRECT_GUESS_POINTS;
   }
 
   room.updatedAt = now();
