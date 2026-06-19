@@ -32,4 +32,5 @@
 ## Notes
 
 - All items pass. Mid-game join handling resolved as out of scope for this scenario.
-- Spec is ready to proceed to `/speckit-clarify` or `/speckit-plan`.
+- Clarification session 2026-06-19 resolved: display name constraints, room code format, polling failure behavior, and initial lobby load state.
+- Spec is ready to proceed to `/speckit-plan`.

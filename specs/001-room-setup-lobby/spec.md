@@ -77,6 +77,7 @@ Once at least 2 players are present in the lobby, the host sees an enabled "Star
 
 ### Edge Cases
 
+- What does the lobby show before the first poll response arrives? The player list renders immediately as empty and updates in place when the first poll response is received — no loading indicator is shown.
 - What happens when a player enters a room code with mixed case or extra whitespace? The code should be normalized (trimmed, case-insensitive match) or a clear "Room not found" error is shown.
 - What happens if the host closes their tab or disconnects before starting the game? The room becomes inaccessible; other players see no active host. (Host migration is out of scope.)
 - What happens if two players try to join with the same display name? Names are not guaranteed unique; the system accepts both and distinguishes by position in list.
@@ -92,10 +93,11 @@ Once at least 2 players are present in the lobby, the host sees an enabled "Star
 - **FR-004**: System MUST reject join attempts with an empty room code and display a validation message without submitting the request.
 - **FR-005**: System MUST ensure rooms are fully isolated: player lists, game state, and events in one room MUST NOT be visible to or affect players in another room.
 - **FR-006**: System MUST designate the room creator as the host automatically; no manual host assignment is required.
-- **FR-007**: The lobby MUST refresh the player list via polling at approximately 2-second intervals.
+- **FR-007**: The lobby MUST refresh the player list via polling at approximately 2-second intervals. If a poll request fails, the lobby MUST silently retry on the next interval; no error message is shown to the user for polling failures.
 - **FR-008**: The "Start Game" control MUST be available only to the host and MUST be disabled (or absent) when fewer than 2 players are in the room.
 - **FR-009**: When the host activates "Start Game" with at least 2 players present, all players in the room MUST be transitioned to the game view.
 - **FR-010**: Non-host players MUST NOT have access to the "Start Game" control.
+- **FR-011**: Players MUST provide a display name of 1–20 characters before creating or joining a room. Whitespace-only names MUST be treated as empty and rejected with a validation message.
 
 ### Key Entities
 
@@ -113,10 +115,19 @@ Once at least 2 players are present in the lobby, the host sees an enabled "Star
 - **SC-005**: The "Start Game" button becomes active exclusively when 2 or more players are present and exclusively for the host — verified across two simultaneous browser sessions.
 - **SC-006**: Two rooms created concurrently show no cross-contamination of player lists or game state.
 
+## Clarifications
+
+### Session 2026-06-19
+
+- Q: Must players provide a display name, and what are the constraints if so? → A: Required, 1–20 characters; whitespace-only treated as empty and rejected.
+- Q: What is the room code format? → A: 6 uppercase alphanumeric characters, server-generated (e.g., "A3FX9K").
+- Q: What happens if a lobby poll request fails? → A: Silently retry indefinitely; no error is shown to the user for polling failures.
+- Q: What does the lobby show while the first poll response is pending? → A: Render an empty player list immediately; update in place when the first poll responds.
+
 ## Assumptions
 
 - Each player provides only a display name to enter the game; no account creation, authentication, or persistent identity is required.
-- Room codes are alphanumeric strings generated server-side; length and character set are left to the implementation plan.
+- Room codes are 6 uppercase alphanumeric characters generated server-side (e.g., "A3FX9K"). Codes are unique per active room.
 - All room state is held in server memory only; restarting the backend clears all rooms, and this is expected behavior.
 - Mobile support is out of scope for this scenario; the target environment is a desktop browser.
 - The backend REST API already accepts room-creation and room-join requests per the starter structure; this feature wires up the frontend and completes any missing backend logic.
