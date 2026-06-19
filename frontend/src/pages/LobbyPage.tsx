@@ -10,7 +10,7 @@ const POLL_INTERVAL_MS = 2000;
 export function LobbyPage() {
   const navigate = useNavigate();
   const roomStore = useRoomStore();
-  const { room, participantId, isLoading } = useRoomState();
+  const { room, participantId, isLoading, error } = useRoomState();
   const roomRef = useRef(room);
   roomRef.current = room;
 
@@ -101,6 +101,7 @@ export function LobbyPage() {
 
       {isHost && (
         <div className="button-row button-row--spread">
+          {error ? <p className="form__error">{error}</p> : null}
           <button
             className="button button--primary"
             disabled={!canStart}
