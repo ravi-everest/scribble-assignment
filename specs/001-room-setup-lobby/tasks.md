@@ -70,7 +70,7 @@
 
 **Independent Test**: Tab A is in the lobby. Tab B joins the same room. Within ~2 seconds, Tab A's player list updates to show Tab B's player — no manual refresh by Tab A's user.
 
-- [ ] T009 [US3] Replace the manual "Refresh Room" button in `LobbyPage.tsx` with a `useEffect` that calls `roomStore.fetchRoom()` via `setInterval` every 2000ms; clear the interval on component unmount; poll failures are silently ignored (per clarification Q3 — no error shown) in `frontend/src/pages/LobbyPage.tsx`
+- [ ] T009 [US3] Replace the manual "Refresh Room" button in `LobbyPage.tsx` with a `useEffect` that calls `roomStore.fetchRoom()` via `setInterval` every 2000ms; clear the interval on component unmount; poll failures are silently ignored (per clarification Q3 — no error shown) in `frontend/src/pages/LobbyPage.tsx`. Concretely: the interval callback must NOT call `setRefreshError` or any error-display path on fetch failure — swallow the rejection and let the next tick retry.
 
 **Checkpoint**: User Story 3 fully functional — lobby auto-refreshes every ~2s; manual button gone; new joiners appear within one polling cycle ✅
 

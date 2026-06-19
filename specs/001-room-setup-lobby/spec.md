@@ -69,7 +69,7 @@ Once at least 2 players are present in the lobby, the host sees an enabled "Star
 
 **Acceptance Scenarios**:
 
-1. **Given** fewer than 2 players are in the lobby, **When** the host views the lobby, **Then** the "Start Game" button is disabled or absent, preventing premature game start.
+1. **Given** fewer than 2 players are in the lobby, **When** the host views the lobby, **Then** the "Start Game" button is rendered but disabled, preventing premature game start.
 2. **Given** at least 2 players are in the lobby, **When** the host clicks "Start Game", **Then** the game begins and all players in the room are transitioned to the game view.
 3. **Given** a non-host player is in the lobby with 2+ players present, **When** they view the lobby, **Then** no "Start Game" button is visible or interactive for them.
 
@@ -94,7 +94,7 @@ Once at least 2 players are present in the lobby, the host sees an enabled "Star
 - **FR-005**: System MUST ensure rooms are fully isolated: player lists, game state, and events in one room MUST NOT be visible to or affect players in another room.
 - **FR-006**: System MUST designate the room creator as the host automatically; no manual host assignment is required.
 - **FR-007**: The lobby MUST refresh the player list via polling at approximately 2-second intervals. If a poll request fails, the lobby MUST silently retry on the next interval; no error message is shown to the user for polling failures.
-- **FR-008**: The "Start Game" control MUST be available only to the host and MUST be disabled (or absent) when fewer than 2 players are in the room.
+- **FR-008**: The "Start Game" control MUST be available only to the host and MUST be rendered but disabled when fewer than 2 players are in the room.
 - **FR-009**: When the host activates "Start Game" with at least 2 players present, all players in the room MUST be transitioned to the game view.
 - **FR-010**: Non-host players MUST NOT have access to the "Start Game" control.
 - **FR-011**: Players MUST provide a display name of 1–20 characters before creating or joining a room. Whitespace-only names MUST be treated as empty and rejected with a validation message.
