@@ -1,15 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "../components/Card";
 import { PageHeader } from "../components/PageHeader";
 import { RoomCodeBadge } from "../components/RoomCodeBadge";
 import { useRoomState, useRoomStore } from "../state/roomStore";
 
+const POLL_INTERVAL_MS = 2000;
+
 export function LobbyPage() {
   const navigate = useNavigate();
   const roomStore = useRoomStore();
-  const { room, error, isLoading } = useRoomState();
-  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const { room, participantId, isLoading } = useRoomState();
+  const roomRef = useRef(room);
+  roomRef.current = room;
 
   useEffect(() => {
     if (!room) {
@@ -17,17 +20,39 @@ export function LobbyPage() {
     }
   }, [navigate, room]);
 
-  async function handleRefresh() {
-    try {
-      setRefreshError(null);
-      await roomStore.fetchRoom();
-    } catch (caughtError) {
-      setRefreshError(caughtError instanceof Error ? caughtError.message : "Unable to refresh room");
+  useEffect(() => {
+    if (!room) return;
+
+    const intervalId = setInterval(() => {
+      roomStore.fetchRoom().catch(() => {
+        // poll failures are silently ignored — next tick will retry
+      });
+    }, POLL_INTERVAL_MS);
+
+    return () => clearInterval(intervalId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomStore, room?.code]);
+
+  useEffect(() => {
+    if (room?.status === "active") {
+      navigate("/game");
     }
-  }
+  }, [navigate, room?.status]);
 
   if (!room) {
     return null;
+  }
+
+  const isHost = participantId === room.hostId;
+  const canStart = isHost && room.participants.length >= 2;
+
+  async function handleStartGame() {
+    if (!room || !participantId) return;
+    try {
+      await roomStore.startRoom(room.code, participantId);
+    } catch {
+      // error surfaced via store state
+    }
   }
 
   return (
@@ -49,7 +74,10 @@ export function LobbyPage() {
             <ul className="player-list">
               {room.participants.map((participant) => (
                 <li key={participant.id}>
-                  <span>{participant.name}</span>
+                  <span>
+                    {participant.name}
+                    {participant.id === room.hostId ? " (Host)" : ""}
+                  </span>
                   <span className="player-list__meta">joined</span>
                 </li>
               ))}
@@ -58,21 +86,30 @@ export function LobbyPage() {
         </Card>
 
         <Card title="Status">
-          <p className="status-line" style={{ backgroundColor: isLoading ? '#fef3c7' : '#e0e7ff', color: isLoading ? '#b45309' : '#3730a3' }}>
+          <p className="status-line" style={{ backgroundColor: isLoading ? "#fef3c7" : "#e0e7ff", color: isLoading ? "#b45309" : "#3730a3" }}>
             {isLoading ? "Refreshing players..." : "Ready to play"}
           </p>
-          <p style={{ marginTop: '8px' }}>{error ?? refreshError ?? "Waiting for the host to start the game."}</p>
+          <p style={{ marginTop: "8px" }}>
+            {isHost
+              ? room.participants.length < 2
+                ? "Waiting for at least one more player to join."
+                : "You can start the game."
+              : "Waiting for the host to start the game."}
+          </p>
         </Card>
       </div>
 
-      <div className="button-row button-row--spread">
-        <button className="button button--secondary" disabled={isLoading} onClick={handleRefresh}>
-          {isLoading ? "Refreshing..." : "Refresh Room"}
-        </button>
-        <button className="button button--primary" onClick={() => navigate("/game")}>
-          Start Game
-        </button>
-      </div>
+      {isHost && (
+        <div className="button-row button-row--spread">
+          <button
+            className="button button--primary"
+            disabled={!canStart}
+            onClick={handleStartGame}
+          >
+            Start Game
+          </button>
+        </div>
+      )}
     </section>
   );
 }

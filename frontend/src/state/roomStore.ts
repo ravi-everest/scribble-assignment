@@ -98,6 +98,12 @@ class RoomStore {
     this.setRoomSnapshot(response.room);
     return response.room;
   }
+
+  async startRoom(code: string, participantId: string) {
+    const response = await this.withLoading(() => api.startRoom(code, participantId));
+    this.setRoomSnapshot(response.room);
+    return response.room;
+  }
 }
 
 const RoomStoreContext = createContext<RoomStore | null>(null);

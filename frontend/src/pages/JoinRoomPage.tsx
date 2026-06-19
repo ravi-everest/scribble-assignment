@@ -10,12 +10,27 @@ export function JoinRoomPage() {
   const navigate = useNavigate();
   const roomStore = useRoomStore();
 
+  function validateInputs(name: string, code: string): string | null {
+    const trimmedCode = code.trim();
+    if (trimmedCode.length === 0) return "Please enter a room code";
+    const trimmedName = name.trim();
+    if (trimmedName.length === 0) return "Please enter a player name";
+    if (trimmedName.length > 20) return "Name must be 20 characters or fewer";
+    return null;
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    const validationError = validateInputs(playerName, roomCode);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     try {
       setError(null);
-      await roomStore.joinRoom(roomCode.toUpperCase(), playerName);
+      await roomStore.joinRoom(roomCode.toUpperCase(), playerName.trim());
       navigate("/lobby");
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "Unable to join room");
@@ -46,7 +61,7 @@ export function JoinRoomPage() {
             className="form__input form__input--code"
             value={roomCode}
             onChange={(event) => setRoomCode(event.target.value.toUpperCase())}
-            placeholder="ABCD"
+            placeholder="ABCDEF"
           />
         </label>
         {error ? <p className="form__error">{error}</p> : null}

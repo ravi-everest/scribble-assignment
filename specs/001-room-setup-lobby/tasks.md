@@ -18,7 +18,7 @@
 
 **Purpose**: Confirm a clean build baseline exists before any changes begin
 
-- [ ] T001 Run `npm run build` in both `backend/` and `frontend/` and confirm zero errors — establishes a clean baseline before any file is touched
+- [x] T001 Run `npm run build` in both `backend/` and `frontend/` and confirm zero errors — establishes a clean baseline before any file is touched
 
 **Checkpoint**: Both builds pass → safe to begin foundational changes
 
@@ -30,10 +30,10 @@
 
 **⚠️ CRITICAL**: T004 depends on T002 completing first (roomStore imports from game.ts). T003 and T005 are independent and can run in parallel with T002.
 
-- [ ] T002 Add `hostId: string` field to `Room` interface and extend `RoomStatus` to `"lobby" | "active"` in `backend/src/models/game.ts`
-- [ ] T003 [P] Update `createRoomSchema` and `joinRoomSchema` — replace `playerName: z.string().optional()` with `z.string().trim().min(1).max(20)` in `backend/src/api/schemas.ts`
-- [ ] T004 Update `roomStore.ts` — extend `generateCode()` from 4 to 6 chars (keep existing 32-char alphabet), set `room.hostId = participant.id` in `createRoom()`, remove `displayName()` default-name fallback so empty names are no longer accepted silently, expose `hostId` in `toRoomSnapshot()` return value in `backend/src/services/roomStore.ts`
-- [ ] T005 [P] Add `hostId: string` to the `RoomSnapshot` interface in `frontend/src/services/api.ts`
+- [x] T002 Add `hostId: string` field to `Room` interface and extend `RoomStatus` to `"lobby" | "active"` in `backend/src/models/game.ts`
+- [x] T003 [P] Update `createRoomSchema` and `joinRoomSchema` — replace `playerName: z.string().optional()` with `z.string().trim().min(1).max(20)` in `backend/src/api/schemas.ts`
+- [x] T004 Update `roomStore.ts` — extend `generateCode()` from 4 to 6 chars (keep existing 32-char alphabet), set `room.hostId = participant.id` in `createRoom()`, remove `displayName()` default-name fallback so empty names are no longer accepted silently, expose `hostId` in `toRoomSnapshot()` return value in `backend/src/services/roomStore.ts`
+- [x] T005 [P] Add `hostId: string` to the `RoomSnapshot` interface in `frontend/src/services/api.ts`
 
 **Checkpoint**: Backend validates names (1–20 chars required), generates 6-char codes, sets hostId on creation; frontend type reflects hostId → user story work can begin
 
@@ -45,8 +45,8 @@
 
 **Independent Test**: Open the app in one browser tab, enter a name, click "Create Room" — a 6-char room code appears, the player's name is shown in the participant list with a "(Host)" label.
 
-- [ ] T006 [US1] Add client-side name validation to `CreateRoomPage.tsx` — trim the value, reject empty/whitespace-only with inline error message "Please enter a player name", reject names over 20 chars with "Name must be 20 characters or fewer"; validation fires on submit before any API call in `frontend/src/pages/CreateRoomPage.tsx`
-- [ ] T007 [US1] Add host indicator to the participant list in `LobbyPage.tsx` — for each participant, render a "(Host)" badge/label when `participant.id === room.hostId`; `room.hostId` is now available on `RoomSnapshot` (added in T005) in `frontend/src/pages/LobbyPage.tsx`
+- [x] T006 [US1] Add client-side name validation to `CreateRoomPage.tsx` — trim the value, reject empty/whitespace-only with inline error message "Please enter a player name", reject names over 20 chars with "Name must be 20 characters or fewer"; validation fires on submit before any API call in `frontend/src/pages/CreateRoomPage.tsx`
+- [x] T007 [US1] Add host indicator to the participant list in `LobbyPage.tsx` — for each participant, render a "(Host)" badge/label when `participant.id === room.hostId`; `room.hostId` is now available on `RoomSnapshot` (added in T005) in `frontend/src/pages/LobbyPage.tsx`
 
 **Checkpoint**: User Story 1 fully functional — create room, see lobby with host marker, 6-char code displayed ✅
 
@@ -58,7 +58,7 @@
 
 **Independent Test**: Open two browser tabs. Tab A creates a room. Tab B enters the room code and a different player name, clicks "Join Lobby" — both players appear in each other's lobby participant list.
 
-- [ ] T008 [US2] Add client-side validation to `JoinRoomPage.tsx` — (1) reject empty/whitespace-only room code field with "Please enter a room code" before submitting; (2) apply the same name validation as T006 (trim, non-empty, ≤20 chars) before submitting in `frontend/src/pages/JoinRoomPage.tsx`
+- [x] T008 [US2] Add client-side validation to `JoinRoomPage.tsx` — (1) reject empty/whitespace-only room code field with "Please enter a room code" before submitting; (2) apply the same name validation as T006 (trim, non-empty, ≤20 chars) before submitting in `frontend/src/pages/JoinRoomPage.tsx`
 
 **Checkpoint**: User Story 2 fully functional — valid join succeeds, invalid/empty codes rejected with visible error, name validation enforced ✅
 
@@ -70,7 +70,7 @@
 
 **Independent Test**: Tab A is in the lobby. Tab B joins the same room. Within ~2 seconds, Tab A's player list updates to show Tab B's player — no manual refresh by Tab A's user.
 
-- [ ] T009 [US3] Replace the manual "Refresh Room" button in `LobbyPage.tsx` with a `useEffect` that calls `roomStore.fetchRoom()` via `setInterval` every 2000ms; clear the interval on component unmount; poll failures are silently ignored (per clarification Q3 — no error shown) in `frontend/src/pages/LobbyPage.tsx`. Concretely: the interval callback must NOT call `setRefreshError` or any error-display path on fetch failure — swallow the rejection and let the next tick retry.
+- [x] T009 [US3] Replace the manual "Refresh Room" button in `LobbyPage.tsx` with a `useEffect` that calls `roomStore.fetchRoom()` via `setInterval` every 2000ms; clear the interval on component unmount; poll failures are silently ignored (per clarification Q3 — no error shown) in `frontend/src/pages/LobbyPage.tsx`. Concretely: the interval callback must NOT call `setRefreshError` or any error-display path on fetch failure — swallow the rejection and let the next tick retry.
 
 **Checkpoint**: User Story 3 fully functional — lobby auto-refreshes every ~2s; manual button gone; new joiners appear within one polling cycle ✅
 
@@ -82,12 +82,12 @@
 
 **Independent Test**: Tab A (host) and Tab B (non-host) both in the lobby. Tab A's "Start Game" button is active; Tab B has no active button. Host clicks "Start Game" — both tabs navigate to `/game` within ~2s.
 
-- [ ] T010 [P] [US4] Add `startRoomSchema` — `z.object({ participantId: z.string().min(1) })` — to `backend/src/api/schemas.ts` (appended after existing schemas; T003 must be complete)
-- [ ] T011 [US4] Add `startRoom(code: string, participantId: string)` function to `backend/src/services/roomStore.ts` — look up room (return null if not found), check caller is host (throw 403 HttpError if `room.hostId !== participantId`), check ≥2 participants (throw 400 HttpError "At least 2 players are required to start"), check room is not already active (throw 400 "Room is already active"), set `room.status = "active"`, save and return updated snapshot
-- [ ] T012 [US4] Add `POST /rooms/:code/start` route to `backend/src/api/rooms.ts` — parse params with `roomCodeParamsSchema`, parse body with `startRoomSchema`, call `startRoom()`; return 404 if room not found, propagate 400/403 HttpErrors from service, return 200 with `{ room: RoomSnapshot }` on success
-- [ ] T013 [P] [US4] Add `api.startRoom(code: string, participantId: string)` function to `frontend/src/services/api.ts` — `POST /rooms/:code/start` with body `{ participantId }`; returns `{ room: RoomSnapshot }` (T005 must be complete for correct RoomSnapshot type)
-- [ ] T014 [P] [US4] Add `startRoom(code: string, participantId: string)` action to `frontend/src/state/roomStore.ts` — call `api.startRoom()` inside `withLoading()`, call `setRoomSnapshot()` on success; follows the same pattern as the existing `joinRoom` action
-- [ ] T015 [US4] Update `LobbyPage.tsx` — (1) show "Start Game" button only when `state.participantId === room.hostId`; (2) enable the button only when `room.participants.length >= 2`; (3) on click, call `roomStore.startRoom(room.code, state.participantId)`; (4) in the polling `useEffect` (T009), add a check: if `room.status === "active"` after a poll, call `navigate("/game")` automatically for all clients including non-hosts in `frontend/src/pages/LobbyPage.tsx`
+- [x] T010 [P] [US4] Add `startRoomSchema` — `z.object({ participantId: z.string().min(1) })` — to `backend/src/api/schemas.ts` (appended after existing schemas; T003 must be complete)
+- [x] T011 [US4] Add `startRoom(code: string, participantId: string)` function to `backend/src/services/roomStore.ts` — look up room (return null if not found), check caller is host (throw 403 HttpError if `room.hostId !== participantId`), check ≥2 participants (throw 400 HttpError "At least 2 players are required to start"), check room is not already active (throw 400 "Room is already active"), set `room.status = "active"`, save and return updated snapshot
+- [x] T012 [US4] Add `POST /rooms/:code/start` route to `backend/src/api/rooms.ts` — parse params with `roomCodeParamsSchema`, parse body with `startRoomSchema`, call `startRoom()`; return 404 if room not found, propagate 400/403 HttpErrors from service, return 200 with `{ room: RoomSnapshot }` on success
+- [x] T013 [P] [US4] Add `api.startRoom(code: string, participantId: string)` function to `frontend/src/services/api.ts` — `POST /rooms/:code/start` with body `{ participantId }`; returns `{ room: RoomSnapshot }` (T005 must be complete for correct RoomSnapshot type)
+- [x] T014 [P] [US4] Add `startRoom(code: string, participantId: string)` action to `frontend/src/state/roomStore.ts` — call `api.startRoom()` inside `withLoading()`, call `setRoomSnapshot()` on success; follows the same pattern as the existing `joinRoom` action
+- [x] T015 [US4] Update `LobbyPage.tsx` — (1) show "Start Game" button only when `state.participantId === room.hostId`; (2) enable the button only when `room.participants.length >= 2`; (3) on click, call `roomStore.startRoom(room.code, state.participantId)`; (4) in the polling `useEffect` (T009), add a check: if `room.status === "active"` after a poll, call `navigate("/game")` automatically for all clients including non-hosts in `frontend/src/pages/LobbyPage.tsx`
 
 **Checkpoint**: User Story 4 fully functional — host-only gated button, minimum-player enforcement, cross-client navigation via polling ✅
 
@@ -97,8 +97,8 @@
 
 **Purpose**: TypeScript build verification and end-to-end manual validation against acceptance criteria
 
-- [ ] T016 [P] Run `npm run build` in `backend/` — resolve any TypeScript errors introduced by model changes (T002–T004, T010–T012); zero errors required before PR
-- [ ] T017 [P] Run `npm run build` in `frontend/` — resolve any TypeScript errors introduced by type changes (T005–T009, T013–T015); zero errors required before PR
+- [x] T016 [P] Run `npm run build` in `backend/` — resolve any TypeScript errors introduced by model changes (T002–T004, T010–T012); zero errors required before PR
+- [x] T017 [P] Run `npm run build` in `frontend/` — resolve any TypeScript errors introduced by type changes (T005–T009, T013–T015); zero errors required before PR
 - [ ] T018 Run all 8 validation scenarios in `specs/001-room-setup-lobby/quickstart.md` (S1–S8) with two browser tabs — confirm all acceptance criteria (FR-001 through FR-011, SC-001 through SC-006) pass before submitting PR
 
 ---
