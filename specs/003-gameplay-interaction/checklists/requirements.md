@@ -31,6 +31,7 @@
 
 ## Notes
 
-- All items pass. Spec is ready for `/speckit-clarify` or `/speckit-plan`.
+- All items pass. Clarification session 2026-06-19 completed (3 questions answered). Spec is ready for `/speckit-plan`.
 - Canvas sync to guessers is explicitly called out of scope in Assumptions — if needed it must be a separate scenario.
 - Polling interval of ~2 seconds is aligned with the constitution (Principle III) and lobby polling standard.
+- Clarified: guess text stored as post-trim lowercased; no per-submission feedback UI; shared scoreboard visible to all players.
