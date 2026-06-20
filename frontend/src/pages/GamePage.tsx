@@ -41,6 +41,12 @@ export function GamePage() {
   }, [loadError, navigate]);
 
   useEffect(() => {
+    if (room?.status === "result") {
+      navigate(`/result?room=${room.code}`, { replace: true });
+    }
+  }, [navigate, room?.status, room?.code]);
+
+  useEffect(() => {
     if (!room) return;
 
     pollRef.current = setInterval(() => {

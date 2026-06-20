@@ -18,7 +18,7 @@
 
 **Purpose**: Confirm alignment between research.md gaps and live code before writing a single line.
 
-- [ ] T001 Re-read `backend/src/models/game.ts`, `backend/src/services/roomStore.ts`, `frontend/src/services/api.ts`, and `frontend/src/pages/GamePage.tsx` — confirm all 12 gaps from `specs/004-result-restart-validation/research.md` are present in the current codebase (no gap was already fixed upstream)
+- [x] T001 Re-read `backend/src/models/game.ts`, `backend/src/services/roomStore.ts`, `frontend/src/services/api.ts`, and `frontend/src/pages/GamePage.tsx` — confirm all 12 gaps from `specs/004-result-restart-validation/research.md` are present in the current codebase (no gap was already fixed upstream)
 
 **Checkpoint**: All 12 gaps confirmed. Safe to proceed.
 
@@ -30,8 +30,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 Extend `RoomStatus`, `Room`, and `RoomSnapshot` in `backend/src/models/game.ts`: add `"result"` to `RoomStatus` union; add `currentWord: string` field to `Room`; add `currentWord?: string` field to `RoomSnapshot`
-- [ ] T003 [P] Extend `RoomSnapshot` in `frontend/src/services/api.ts`: add `"result"` to the `status` union type; add `currentWord?: string` field
+- [x] T002 Extend `RoomStatus`, `Room`, and `RoomSnapshot` in `backend/src/models/game.ts`: add `"result"` to `RoomStatus` union; add `currentWord: string` field to `Room`; add `currentWord?: string` field to `RoomSnapshot`
+- [x] T003 [P] Extend `RoomSnapshot` in `frontend/src/services/api.ts`: add `"result"` to the `status` union type; add `currentWord?: string` field
 
 T002 and T003 touch different codebases and can be done in parallel.
 
@@ -47,13 +47,13 @@ T002 and T003 touch different codebases and can be done in parallel.
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Update `startRoom` in `backend/src/services/roomStore.ts`: set `room.currentWord = STARTER_WORDS[0]` and initialize `room.scores[hostId] = 0` at game start
-- [ ] T005 [US1] Update `submitGuess` in `backend/src/services/roomStore.ts`: replace the hardcoded `STARTER_WORDS[0]` reference with `room.currentWord`; add round-end detection (all non-host participants have a correct guess → set `room.status = "result"`)
-- [ ] T006 [US1] Update `toRoomSnapshot` in `backend/src/services/roomStore.ts`: include `currentWord: room.currentWord` in the returned snapshot when `room.status === "result"`
-- [ ] T007 [P] [US1] Update `GamePage.tsx` in `frontend/src/pages/GamePage.tsx`: add a `useEffect` that watches `room?.status` and navigates to `/result?room=${room.code}` when `room.status === "result"`
-- [ ] T008 [US1] Create `ResultPage.tsx` at `frontend/src/pages/ResultPage.tsx`: poll at 2-second interval; restore session on mount (same pattern as `GamePage`); display the correct word (`room.currentWord`), the score list (use existing `Scoreboard` component — already sorts descending; drawer appears with score 0), and the full guess history (use existing `ResultPanel` component); show no canvas or guess form
-- [ ] T009 [US1] Register the `/result` route in `frontend/src/routes/index.tsx`: add `<Route path="/result" element={<ResultPage />} />`
-- [ ] T010 [P] [US1] Add unit tests for round-end detection in `backend/src/services/roomStore.test.ts`: test that `submitGuess` transitions `room.status` to `"result"` when the last guesser guesses correctly; test that status stays `"active"` when only some guessers have guessed correctly; test that `toRoomSnapshot` includes `currentWord` in "result" state and omits it in "active" state
+- [x] T004 [US1] Update `startRoom` in `backend/src/services/roomStore.ts`: set `room.currentWord = STARTER_WORDS[0]` and initialize `room.scores[hostId] = 0` at game start
+- [x] T005 [US1] Update `submitGuess` in `backend/src/services/roomStore.ts`: replace the hardcoded `STARTER_WORDS[0]` reference with `room.currentWord`; add round-end detection (all non-host participants have a correct guess → set `room.status = "result"`)
+- [x] T006 [US1] Update `toRoomSnapshot` in `backend/src/services/roomStore.ts`: include `currentWord: room.currentWord` in the returned snapshot when `room.status === "result"`
+- [x] T007 [P] [US1] Update `GamePage.tsx` in `frontend/src/pages/GamePage.tsx`: add a `useEffect` that watches `room?.status` and navigates to `/result?room=${room.code}` when `room.status === "result"`
+- [x] T008 [US1] Create `ResultPage.tsx` at `frontend/src/pages/ResultPage.tsx`: poll at 2-second interval; restore session on mount (same pattern as `GamePage`); display the correct word (`room.currentWord`), the score list (use existing `Scoreboard` component — already sorts descending; drawer appears with score 0), and the full guess history (use existing `ResultPanel` component); show no canvas or guess form
+- [x] T009 [US1] Register the `/result` route in `frontend/src/routes/index.tsx`: add `<Route path="/result" element={<ResultPage />} />`
+- [x] T010 [P] [US1] Add unit tests for round-end detection in `backend/src/services/roomStore.test.ts`: test that `submitGuess` transitions `room.status` to `"result"` when the last guesser guesses correctly; test that status stays `"active"` when only some guessers have guessed correctly; test that `toRoomSnapshot` includes `currentWord` in "result" state and omits it in "active" state
 
 T007 and T010 touch different files and can be done in parallel with each other after T004–T006 are complete.
 
@@ -69,13 +69,13 @@ T007 and T010 touch different files and can be done in parallel with each other 
 
 ### Implementation for User Story 2
 
-- [ ] T011 [US2] Add `restartRoom(code, participantId)` to `backend/src/services/roomStore.ts`: validate room exists (404), caller is host (403), status is `"result"` (400); reset `room.status = "lobby"`, `room.currentWord = ""`, `room.guesses = []`, `room.scores = {}`; return updated snapshot
-- [ ] T012 [P] [US2] Add `restartRoomSchema` to `backend/src/api/schemas.ts`: `z.object({ participantId: z.string().min(1) })`
-- [ ] T013 [US2] Add `POST /:code/restart` route handler to `backend/src/api/rooms.ts`: parse `restartRoomSchema`, call `restartRoom`, return `{ room: snapshot }`
-- [ ] T014 [P] [US2] Add `restartRoom(code, participantId)` to `frontend/src/services/api.ts`: `POST /rooms/:code/restart` with `{ participantId }` body, returns `{ room: RoomSnapshot }`
-- [ ] T015 [US2] Add `restartRoom(code, participantId)` method to `frontend/src/state/roomStore.ts`: calls `api.restartRoom`, calls `setRoomSnapshot` with the returned room
-- [ ] T016 [US2] Update `frontend/src/pages/ResultPage.tsx`: add polling navigation to `/lobby` when `room.status === "lobby"`; add "Restart" button visible only to the host (`participantId === room.hostId`) that calls `roomStore.restartRoom`; non-host players see no restart control
-- [ ] T017 [P] [US2] Add unit tests for `restartRoom` in `backend/src/services/roomStore.test.ts`: test happy-path reset (status, word, guesses, scores cleared; participants preserved); test 403 when called by non-host; test 400 when room is not in "result" status
+- [x] T011 [US2] Add `restartRoom(code, participantId)` to `backend/src/services/roomStore.ts`: validate room exists (404), caller is host (403), status is `"result"` (400); reset `room.status = "lobby"`, `room.currentWord = ""`, `room.guesses = []`, `room.scores = {}`; return updated snapshot
+- [x] T012 [P] [US2] Add `restartRoomSchema` to `backend/src/api/schemas.ts`: `z.object({ participantId: z.string().min(1) })`
+- [x] T013 [US2] Add `POST /:code/restart` route handler to `backend/src/api/rooms.ts`: parse `restartRoomSchema`, call `restartRoom`, return `{ room: snapshot }`
+- [x] T014 [P] [US2] Add `restartRoom(code, participantId)` to `frontend/src/services/api.ts`: `POST /rooms/:code/restart` with `{ participantId }` body, returns `{ room: RoomSnapshot }`
+- [x] T015 [US2] Add `restartRoom(code, participantId)` method to `frontend/src/state/roomStore.ts`: calls `api.restartRoom`, calls `setRoomSnapshot` with the returned room
+- [x] T016 [US2] Update `frontend/src/pages/ResultPage.tsx`: add polling navigation to `/lobby` when `room.status === "lobby"`; add "Restart" button visible only to the host (`participantId === room.hostId`) that calls `roomStore.restartRoom`; non-host players see no restart control
+- [x] T017 [P] [US2] Add unit tests for `restartRoom` in `backend/src/services/roomStore.test.ts`: test happy-path reset (status, word, guesses, scores cleared; participants preserved); test 403 when called by non-host; test 400 when room is not in "result" status
 
 T012 and T014 touch different files and can be done in parallel after T011. T017 can be done in parallel with T012/T014.
 
@@ -102,9 +102,9 @@ T012 and T014 touch different files and can be done in parallel after T011. T017
 
 **Purpose**: Final build verification, edge case validation, and spec traceability review.
 
-- [ ] T020 [P] Run `npm run build` in `backend/` — confirm zero TypeScript errors and zero lint warnings before PR submission
-- [ ] T021 [P] Run `npm run build` in `frontend/` — confirm zero TypeScript errors and zero lint warnings before PR submission
-- [ ] T022 Run all existing Vitest suites: `npm test` in `backend/` and `npm test` in `frontend/` — confirm no regressions in `roomStore.test.ts` or `api.test.ts` baselines
+- [x] T020 [P] Run `npm run build` in `backend/` — confirm zero TypeScript errors and zero lint warnings before PR submission
+- [x] T021 [P] Run `npm run build` in `frontend/` — confirm zero TypeScript errors and zero lint warnings before PR submission
+- [x] T022 Run all existing Vitest suites: `npm test` in `backend/` and `npm test` in `frontend/` — confirm no regressions in `roomStore.test.ts` or `api.test.ts` baselines
 - [ ] T023 Verify edge cases from `spec.md`: (1) empty guess history renders gracefully on result screen; (2) player with score 0 (drawer) appears in score list; (3) non-host player sees no Restart button; (4) room in "result" state correctly shown to a late joiner — all per `quickstart.md` Scenario 4
 - [ ] T024 Review each commit against spec task IDs (S1-AC1 through S2-AC5 as applicable) — ensure every committed change is traceable to a functional requirement per constitution Principle VI
 

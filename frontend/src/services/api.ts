@@ -16,12 +16,13 @@ export interface Guess {
 
 export interface RoomSnapshot {
   code: string;
-  status: "lobby" | "active";
+  status: "lobby" | "active" | "result";
   hostId: string;
   participants: Participant[];
   availableWords: string[];
   roles: ParticipantRole[];
   secretWord?: string;
+  currentWord?: string;
   guesses: Guess[];
   scores: Record<string, number>;
 }
@@ -80,6 +81,12 @@ export const api = {
     return request<{ room: RoomSnapshot }>(`/rooms/${encodeURIComponent(code)}/guess`, {
       method: "POST",
       body: JSON.stringify({ participantId, guess })
+    });
+  },
+  restartRoom(code: string, participantId: string) {
+    return request<{ room: RoomSnapshot }>(`/rooms/${encodeURIComponent(code)}/restart`, {
+      method: "POST",
+      body: JSON.stringify({ participantId })
     });
   }
 };

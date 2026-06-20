@@ -55,6 +55,7 @@ export function createRoom(playerName: string) {
     participants: [participant],
     guesses: [],
     scores: {},
+    currentWord: "",
     createdAt: now(),
     updatedAt: now()
   };
@@ -111,11 +112,12 @@ export function startRoom(code: string, participantId: string): RoomSnapshot {
     throw new HttpError(400, "At least 2 players are required to start");
   }
 
-  if (room.status === "active") {
+  if (room.status !== "lobby") {
     throw new HttpError(400, "Room is already active");
   }
 
   room.status = "active";
+  room.currentWord = STARTER_WORDS[0];
   room.updatedAt = now();
   for (const participant of room.participants) {
     room.scores[participant.id] = 0;
@@ -160,8 +162,7 @@ export function submitGuess(code: string, participantId: string, rawGuess: strin
     throw new HttpError(400, "Guess cannot be empty");
   }
 
-  const secretWord = STARTER_WORDS[0];
-  const correct = compareGuess(rawGuess, secretWord);
+  const correct = compareGuess(rawGuess, room.currentWord);
   const guess: Guess = {
     participantId,
     playerName: participant.name,
@@ -176,6 +177,37 @@ export function submitGuess(code: string, participantId: string, rawGuess: strin
     room.scores[participantId] = (room.scores[participantId] ?? 0) + CORRECT_GUESS_POINTS;
   }
 
+  const guessers = room.participants.filter((p) => p.id !== room.hostId);
+  const correctIds = new Set(room.guesses.filter((g) => g.correct).map((g) => g.participantId));
+  if (guessers.length > 0 && guessers.every((p) => correctIds.has(p.id))) {
+    room.status = "result";
+  }
+
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return toRoomSnapshot(cloneRoom(room), participantId);
+}
+
+export function restartRoom(code: string, participantId: string): RoomSnapshot {
+  const room = rooms.get(code);
+
+  if (!room) {
+    throw new HttpError(404, "Room not found");
+  }
+
+  if (room.hostId !== participantId) {
+    throw new HttpError(403, "Only the host can restart the game");
+  }
+
+  if (room.status !== "result") {
+    throw new HttpError(400, "Room is not in result state");
+  }
+
+  room.status = "lobby";
+  room.currentWord = "";
+  room.guesses = [];
+  room.scores = {};
   room.updatedAt = now();
   rooms.set(room.code, room);
 
@@ -185,8 +217,10 @@ export function submitGuess(code: string, participantId: string, rawGuess: strin
 export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSnapshot {
   const secretWord =
     room.status === "active" && viewerParticipantId === room.hostId
-      ? STARTER_WORDS[0]
+      ? room.currentWord
       : undefined;
+
+  const currentWord = room.status === "result" ? room.currentWord : undefined;
 
   return {
     code: room.code,
@@ -197,6 +231,7 @@ export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSn
     roles: [...STARTER_ROLES],
     guesses: room.guesses.map((g) => ({ ...g })),
     scores: { ...room.scores },
-    ...(secretWord !== undefined ? { secretWord } : {})
+    ...(secretWord !== undefined ? { secretWord } : {}),
+    ...(currentWord !== undefined ? { currentWord } : {})
   };
 }
