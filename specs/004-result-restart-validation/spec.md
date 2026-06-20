@@ -29,7 +29,7 @@ After a round ends, every player (both the drawer and guessers) sees a results s
 
 ### User Story 2 - Host Restarts the Game (Priority: P1)
 
-After reviewing the results, the host clicks a "Restart" or "Play Again" button. All players are returned to the lobby screen. Players previously in the room remain in the room — no one is dropped. All round-specific state (the word, guesses, scores from the last round) is cleared so the next round starts fresh.
+After reviewing the results, the host clicks a "Restart" button. All players are returned to the lobby screen. Players previously in the room remain in the room — no one is dropped. All round-specific state (the word, guesses, scores from the last round) is cleared so the next round starts fresh.
 
 **Why this priority**: Restart is the primary exit from the result state and must work correctly for the game loop to function.
 
@@ -66,7 +66,7 @@ All clients polling the server during and after the result phase see the same co
 - What happens when the host disconnects (stops polling) on the result screen? The room remains in result state; other players continue to see results; a non-host player cannot restart.
 - What happens if a player joins a room that is currently in "result" state? They see the result screen (room is not in a state that accepts new actions from late joiners).
 - What happens when the host restarts but a client is mid-poll? The client will receive the updated lobby state on its next poll and transition accordingly.
-- What happens if a player's score is 0 at the end of the round? They still appear in the results with a score of 0.
+- What happens if a player's score is 0 at the end of the round? They still appear in the results with a score of 0 (this includes the drawer, who always scores 0).
 - What happens if no guesses were made during the round? The guess history is empty but still displayed (or shows an appropriate empty state message).
 
 ## Requirements *(mandatory)*
@@ -75,7 +75,7 @@ All clients polling the server during and after the result phase see the same co
 
 - **FR-001**: System MUST transition all connected players to a "result" view when the round ends.
 - **FR-002**: The result view MUST display the correct word (the word that was being drawn).
-- **FR-003**: The result view MUST display the final score for every player currently in the room.
+- **FR-003**: The result view MUST display the final score for every player currently in the room (including the drawer, who scores 0), listed in descending score order (highest scorer first).
 - **FR-004**: The result view MUST display the full chronological guess history from the round (player name, guess text, and whether it was correct).
 - **FR-005**: Only the host MUST be able to initiate a restart; non-host players MUST NOT have access to the restart action.
 - **FR-006**: When the host restarts, the system MUST transition all connected players to the lobby view.
@@ -100,6 +100,14 @@ All clients polling the server during and after the result phase see the same co
 - **SC-003**: 100% of players present at round end appear in the post-restart lobby with their names intact.
 - **SC-004**: Zero round-state data (word, guesses, scores) persists in the lobby after a restart — confirmed via a fresh round start.
 - **SC-005**: Two-browser validation (host + guesser) passes for both the result display scenario and the restart scenario with no manual reconciliation required.
+
+## Clarifications
+
+### Session 2026-06-20
+
+- Q: In what order should players be listed in the score display on the result screen? → A: Score descending — highest scorer appears first (winner at top).
+- Q: Does the drawer appear in the score list on the result screen? → A: Yes — drawer is included with a score of 0.
+- Q: What is the canonical label for the host's restart button on the result screen? → A: "Restart".
 
 ## Assumptions
 
